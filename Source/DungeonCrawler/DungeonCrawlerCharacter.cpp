@@ -133,8 +133,8 @@ void ADungeonCrawlerCharacter::OnHealthAttributeChanged(const FOnAttributeChange
 {
 	UGameplayMessageSubsystem& MessageSubsystem = UGameplayMessageSubsystem::Get(GetWorld());
 
-	FGameplayTag ChannelTag = FGameplayTag::RequestGameplayTag(TEXT("Lyra.StatChange.Health.Message")); // You will need to assign this value as appropriate for your code
-	FChangeHealthUIDisplayMessage OutgoingMessage; // You will need to define the structure and fill out any members with data as appropriate for your code
+	FGameplayTag ChannelTag = FGameplayTag::RequestGameplayTag(TEXT("Lyra.StatChange.Health.Message"));
+	FChangeHealthUIDisplayMessage OutgoingMessage;
 	const float CurrHealthValue = OnAttributeChangeData.NewValue;
 	const float MaxHealthValue = StandardAttributes->GetHealthMax();
 	OutgoingMessage.HealthPercentage = OnAttributeChangeData.NewValue / MaxHealthValue;
@@ -146,9 +146,6 @@ void ADungeonCrawlerCharacter::OnHealthAttributeChanged(const FOnAttributeChange
 	
 	if(FMath::IsNearlyEqual(OnAttributeChangeData.NewValue, 0.f) && OnAttributeChangeData.OldValue > 0)
 	{
-		//FGameplayTag DeathTag = FGameplayTag::RequestGameplayTag(TEXT("Conditions.Dead"));
-		//FGameplayEffectSpec GameplayEffect = 
-		//this->AbilitySystemComponent->ApplyGameplayEffectToSelf();
 		FGameplayEffectContextHandle EffectContext = AbilitySystemComponent->MakeEffectContext();
 		EffectContext.AddSourceObject(this);
 
@@ -158,7 +155,6 @@ void ADungeonCrawlerCharacter::OnHealthAttributeChanged(const FOnAttributeChange
 		{
 			AbilitySystemComponent->ApplyGameplayEffectSpecToSelf(*EffectSpec.Data.Get());
 		}
-		//this->AbilitySystemComponent->ApplyGameplayEffectToSelf()
 		// Health has just reached zero.
 		if (DeathMontage->IsValidLowLevelFast())
 		{
