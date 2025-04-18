@@ -8,28 +8,20 @@ UCastTimeAbility::UCastTimeAbility(): WaitDelay(nullptr)
 	MessageTag = FGameplayTag::RequestGameplayTag("Lyra.Ability.Casting.Message");
 }
 
-void UCastTimeAbility::HandleMovementInterrupt(class ACharacter* Character, EMovementMode PrevMovementMode,
-	uint8 PreviousCustomMode)
+void UCastTimeAbility::HandleMovementGameplayTagChanged(const FGameplayTag Tag, int32 Count)
 {
-	if (Character && Character->GetVelocity().Size() > 0.0f) // Checks if the character is moving
+	if (Tag == FGameplayTag::RequestGameplayTag(FName("Character.Moving")) && Count > 0 && IsInterruptible)
 	{
- 		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, true);
+		// End the ability when the movement tag is detected
+		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
+		UE_LOG(LogTemp, Warning, TEXT("Cast Time Ability interrupted due to movement!"));
 	}
-
 }
+
 
 void UCastTimeAbility::OnAvatarSet(const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilitySpec& Spec)
 {
 	Super::OnAvatarSet(ActorInfo, Spec);
-
-	if (IsInterruptible)
-	{
-		ACharacter* Character = Cast<ACharacter>(ActorInfo->AvatarActor.Get());
-		if (Character)
-		{
-			Character->MovementModeChangedDelegate.AddDynamic(this, &UCastTimeAbility::HandleMovementInterrupt);
-		}
-	}
 }
 
 
@@ -39,6 +31,15 @@ void UCastTimeAbility::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 	const FGameplayEventData* TriggerEventData)
 {
 	StartCasting();
+
+	UAbilitySystemComponent* AbilitySystemComponent = ActorInfo->AbilitySystemComponent.Get();
+	if (AbilitySystemComponent)
+	{
+		// Listen for the Gameplay Tag being applied
+		AbilitySystemComponent->RegisterGameplayTagEvent(FGameplayTag::RequestGameplayTag(FName("Character.Moving")), EGameplayTagEventType::NewOrRemoved)
+			.AddUObject(this, &UCastTimeAbility::HandleMovementGameplayTagChanged);
+	}
+
 }
 
 
@@ -91,4 +92,21 @@ float UCastTimeAbility::GetSectionStartTime(const FName SectionName, const float
 		}
 	}
 	return -1.0f;
+}
+
+void UCastTimeAbility::EndAbility(
+	const FGameplayAbilitySpecHandle Handle,
+	const FGameplayAbilityActorInfo* ActorInfo,
+	const FGameplayAbilityActivationInfo ActivationInfo,
+	bool bReplicateEndAbility, bool bWasCancelled)
+{
+	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
+
+	// Remove the Gameplay Tag listener, clean up.
+	UAbilitySystemComponent* AbilitySystemComponent = ActorInfo->AbilitySystemComponent.Get();
+	if (AbilitySystemComponent)
+	{
+		AbilitySystemComponent->RegisterGameplayTagEvent(FGameplayTag::RequestGameplayTag(FName("Character.Moving")), EGameplayTagEventType::NewOrRemoved)
+			.RemoveAll(this);
+	}
 }

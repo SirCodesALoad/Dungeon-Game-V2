@@ -41,8 +41,8 @@ public:
 	bool IsInterruptible = false;
 
 	UFUNCTION()
-	void HandleMovementInterrupt(class ACharacter* Character, EMovementMode PrevMovementMode, uint8 PreviousCustomMode);
-	
+	virtual void HandleMovementGameplayTagChanged(FGameplayTag Tag, int32 Count);
+
 	virtual void OnAvatarSet(const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilitySpec& Spec) override;
 	
 protected:
@@ -76,5 +76,6 @@ protected:
 	
 	UFUNCTION(BlueprintCallable, Category = "CastTimeAbility")
 	float GetSectionStartTime(const FName SectionName, const float PlayRate = 1.f) const;
-	
+	virtual void EndAbility(FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
+	                FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled) override;
 };

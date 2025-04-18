@@ -96,6 +96,16 @@ void ADungeonCrawlerCharacter::PossessedBy(AController* NewController)
 	TeamId = FGenericTeamId(Faction);
 }
 
+void ADungeonCrawlerCharacter::OnMovementInputReleased()
+{
+	if (AbilitySystemComponent && MoveGameplayEffect)
+	{
+		// Remove the Gameplay Effect
+		AbilitySystemComponent->RemoveActiveGameplayEffectBySourceEffect(MoveGameplayEffect, AbilitySystemComponent);
+	}
+
+}
+
 void ADungeonCrawlerCharacter::SetupInitialAbilitiesAndEffects()
 {
 	if(IsValid(AbilitySystemComponent) == false)
@@ -200,6 +210,8 @@ void ADungeonCrawlerCharacter::SetupPlayerInputComponent(UInputComponent* Player
 
 		//Moving
 		EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &ADungeonCrawlerCharacter::Move);
+		EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Completed, this, &ADungeonCrawlerCharacter::OnMovementInputReleased);
+
 
 		//Looking
 		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &ADungeonCrawlerCharacter::Look);
@@ -237,6 +249,12 @@ void ADungeonCrawlerCharacter::Move(const FInputActionValue& Value)
 		// add movement 
 		AddMovementInput(ForwardDirection, MovementVector.Y);
 		AddMovementInput(RightDirection, MovementVector.X);
+
+		if (AbilitySystemComponent && MoveGameplayEffect)
+		{
+			FGameplayEffectSpecHandle SpecHandle = AbilitySystemComponent->MakeOutgoingSpec(MoveGameplayEffect, 1.0f, AbilitySystemComponent->MakeEffectContext());
+			AbilitySystemComponent->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data.Get());
+		}
 	}
 }
 

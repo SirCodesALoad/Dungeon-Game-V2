@@ -78,6 +78,7 @@ class ADungeonCrawlerCharacter : public ACharacter, public IGenericTeamAgentInte
 	UInputAction* LookAction;
 	
 	TSubclassOf<UGameplayEffect> DeathGameplayEffect = ConstructorHelpers::FClassFinder<UGameplayEffect>(TEXT("/Game/Gameplay/GameplayEffects/GE_Death")).Class;
+	TSubclassOf<UGameplayEffect> MoveGameplayEffect = ConstructorHelpers::FClassFinder<UGameplayEffect>(TEXT("/Game/Gameplay/GameplayEffects/GE_MoveEffect")).Class;
 
 
 	// UFUNCTION(BlueprintCallable, Category="Input")
@@ -146,5 +147,6 @@ public:
 	virtual FGenericTeamId GetGenericTeamId() const override { return TeamId; }
 
 	virtual void PossessedBy(AController* NewController) override;
+	void OnMovementInputReleased();
 };
 
