@@ -1,11 +1,37 @@
 ﻿#include "CastTimeAbility.h"
 
+#include "GameFramework/CharacterMovementComponent.h"
 #include "Windows/WindowsTextInputMethodSystem.h"
 
 UCastTimeAbility::UCastTimeAbility(): WaitDelay(nullptr)
 {
 	MessageTag = FGameplayTag::RequestGameplayTag("Lyra.Ability.Casting.Message");
 }
+
+void UCastTimeAbility::HandleMovementInterrupt(class ACharacter* Character, EMovementMode PrevMovementMode,
+	uint8 PreviousCustomMode)
+{
+	if (Character && Character->GetVelocity().Size() > 0.0f) // Checks if the character is moving
+	{
+ 		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, true);
+	}
+
+}
+
+void UCastTimeAbility::OnAvatarSet(const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilitySpec& Spec)
+{
+	Super::OnAvatarSet(ActorInfo, Spec);
+
+	if (IsInterruptible)
+	{
+		ACharacter* Character = Cast<ACharacter>(ActorInfo->AvatarActor.Get());
+		if (Character)
+		{
+			Character->MovementModeChangedDelegate.AddDynamic(this, &UCastTimeAbility::HandleMovementInterrupt);
+		}
+	}
+}
+
 
 void UCastTimeAbility::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 	const FGameplayAbilityActorInfo* ActorInfo,
@@ -18,7 +44,7 @@ void UCastTimeAbility::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 
 void UCastTimeAbility::StartCasting()
 {
-	CastTime = GetSectionStartTime(EndCastTimeSectionName, 1.0f);
+	//CastTime = GetSectionStartTime(EndCastTimeSectionName, 1.0f);
 	UGameplayMessageSubsystem& MessageSubsystem = UGameplayMessageSubsystem::Get(GetWorld());
 
 	if (MessageSubsystem.IsValidLowLevelFast())
@@ -32,6 +58,8 @@ void UCastTimeAbility::StartCasting()
 	WaitDelay = UAbilityTask_WaitDelay::WaitDelay(this, CastTime);
 	WaitDelay->OnFinish.AddDynamic(this, &UCastTimeAbility::OnFinishCasting);
 	WaitDelay->ReadyForActivation();
+	UE_LOG(LogTemp, Warning, TEXT("CastTime: %f"), CastTime);
+
 
 	OnCastingStarted();
 }

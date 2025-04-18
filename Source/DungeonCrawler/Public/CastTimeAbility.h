@@ -36,6 +36,14 @@ public:
 
 	UPROPERTY(BlueprintReadWrite, Category= "Ability Info")
 	UAnimMontage* MontageToPlay;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category= "Ability Info")
+	bool IsInterruptible = false;
+
+	UFUNCTION()
+	void HandleMovementInterrupt(class ACharacter* Character, EMovementMode PrevMovementMode, uint8 PreviousCustomMode);
+	
+	virtual void OnAvatarSet(const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilitySpec& Spec) override;
 	
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CastTimeAbility")
@@ -48,7 +56,7 @@ protected:
 	FGameplayTag MessageTag;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CastTime")
-	float CastTime = 1.f;
+	float CastTime = 10.f;
 	
 	UCastTimeAbility();
 	
