@@ -13,6 +13,8 @@ public:
 	// Sets default values for this actor's properties
 	AProjectileBase();
 	
+	virtual void BeginPlay() override;
+
 	// Sphere collision component
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	class USphereComponent* CollisionComponent;
@@ -38,12 +40,19 @@ public:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Projectile Properties")
 	float ProjectileDamage = 15.f;
-	
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Projectile Properties")
+	float LifetimeBeforeDestruction = 5.f;
+
+	FTimerHandle DestroyTimerHandle;
+
+
+	virtual void DestroyProjectile();
 	// Function to initialize the projectile's velocity
 	void InitVelocity(const FVector& ShootDirection);
 
 	UFUNCTION()
-	void OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
+	virtual void OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
 
 };
 

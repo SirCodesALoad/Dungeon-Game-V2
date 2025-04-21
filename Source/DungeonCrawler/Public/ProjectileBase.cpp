@@ -36,6 +36,21 @@ AProjectileBase::AProjectileBase()
 	CollisionComponent->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 }
 
+void AProjectileBase::BeginPlay()
+{
+	Super::BeginPlay();
+
+	// Start the self-destruction timer
+	GetWorldTimerManager().SetTimer(DestroyTimerHandle, this, &AProjectileBase::DestroyProjectile, LifetimeBeforeDestruction, false);
+}
+
+void AProjectileBase::DestroyProjectile()
+{
+	UE_LOG(LogTemp, Warning, TEXT("Projectile destroyed after timeout."));
+	Destroy();
+}
+
+
 
 void AProjectileBase::InitVelocity(const FVector& ShootDirection)
 {
